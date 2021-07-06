@@ -1,0 +1,3 @@
+﻿  main.cpp
+D:\HW\WorkR\Tax_Duplication_Check\Tax_Duplication_Check\main.cpp(23,6): warning C4101: 'choice': unreferenced local variable
+  Tax_Duplication_Check.vcxproj -> D:\HW\WorkR\Tax_Duplication_Check\x64\Debug\Tax_Duplication_Check.exe

@@ -78,20 +78,14 @@ void DBManager::clean() {
 UsrCtrl::UsrCtrl(MySQLInterface* UsrCt) : DBManager::DBManager(UsrCt) {};
 
 bool UsrCtrl::validate(int id, string pw) {
-	errSelect("Select password from RegisteredUsers where uid=" + to_string(id) + ";");
-	if (data.empty()) return false;
-	if (data.at(0).at(0) == pw) return true;
+	errSelect("Select * from code where id='" + pw + "';");
+	if (data.empty()) return true;
 	return false;
 }
 
 bool UsrCtrl::reg(int id, std::string name, std::string pw) {
-	errSelect("Select * from Users where uid=" + to_string(id) + ";");
-	if (!data.empty()) return false;
-	errQuery(R"(INSERT INTO Users
+	errQuery(R"(INSERT INTO code
 VALUES 
-   ()" + to_string(id) + ")");
-	errQuery(R"(INSERT INTO RegisteredUsers
-VALUES 
-   ()" + to_string(id) + ",'" + name + "','" + pw + "',0)" );
+   (')" + name + "');");
 	return true;
 }

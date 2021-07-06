@@ -10,10 +10,10 @@ using namespace std;
 int main(int argc, char* argv[]){
 	MySQLInterface usrCtrl;
 	MySQLInterface MySQLInterface;
-	char hst[] = "cs348-project.c56bjewfihhr.us-east-2.rds.amazonaws.com"; //host name
-	char db[] = "DB1"; //database
-	char uc[] = "UsrCtrl"; //the user control
-	char uc_pw[] = "123456"; //the password for user control admin
+	char hst[] = "taxdupcheck.c56bjewfihhr.us-east-2.rds.amazonaws.com"; //host name
+	char db[] = "code"; //database
+	char uc[] = "admin"; //the user control
+	char uc_pw[] = "123456789"; //the password for user control admin
 	char admin[] = "admin";
 	char admin_pw[] = "123456";
 	char customer[] = "customer";
@@ -27,180 +27,29 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 	UsrCtrl usrc(&usrCtrl);
-	DBManager dbm(&MySQLInterface);
+	bool nq = true;
 
-	//login section
-
-	choice = pnf(0);
-	int id;
-	string pw, name;
-	bool in;
-
-	switch (choice) {
-	case 1:
-		cout << "Enter your id, name and password." << endl;
-		cin >> id;
-		cin >> name >> pw;
+	string code;
+	while(nq){
+		cout << "To check for duplication, please enter the text you get after scanning the QR-code:" << endl;
+		cin >> code;
 		cin.clear();
 		cin.ignore();
-		usrc.reg(id, name, pw);
-		pwd = (char*)"123456789";
-		usr = (char*)"customer";
-		in = true;
-		break;
-	case 2:
-		cout << "Enter your id and password." << endl;
-		cin >> id;
-		cin >> pw;
-		cin.clear();
-		cin.ignore();
-		in = usrc.validate(id, pw);
-		pwd = (char*)"123456789";
-		usr = (char*)"customer";
-		break;
-	case 3:
-		cout << "Enter the password for admin account" << endl;
-		cin >> pw;
-		cin.clear();
-		cin.ignore();
-		in = (pw == admin_pw);
-		pwd = (char*)"123456";
-		usr = (char*)"admin";
-		break;
-	case 4:
-		cout << "not supported" << endl;
-		exit(1);
-	case 0:
-		exit(0);
-	default:
-		exit(1);
-	}
-	
-	if (!in) {
-		cout << "invalid id or password" << endl;
-		exit(1);
-	}
 
-	
-	MySQLInterface.SetMySQLConInfo(hst, usr, pwd, db, 3306);
+		bool ndup = usrc.validate(1, code);
 
-	if (!MySQLInterface.Open()){
-		cout << MySQLInterface.ErrorNum << " : " << MySQLInterface.ErrorInfo << endl;
-		exit(1);
-	}
-
-	//admin account
-	if(choice == 3){
-		choice = 0;
-		while (true) {
-			choice = pnf(1);
-
-			if (choice == 0) break;
-
-			string sqlstr, qname;
-			string id, name, price, stock;
-
-
-			switch (choice) {
-			case 1:
-				// simple query
-
-				sqlstr = "SELECT * FROM `DB1`.`Items`;";
-				dbm.errSelect(sqlstr);
-				dbm.display();
-				dbm.clean();
-				break;
-
-			case 2:
-
-				// simple query
-				cout << "\nPlease enter item id, name, price, stock:" << endl;
-				cin >> id >> name >> price >> stock;
-				cin.clear();
-				cin.ignore();
-				sqlstr = R"(INSERT INTO Items
-VALUES 
-   (')" + id + "','" + name + "','" + price + "','" + stock + "')";
-				dbm.errQuery(sqlstr);
-
-				break;
-			case 0:
-				break;
-			default:
-				cout << "not supported" << endl;
-				break;
-			}
-
-			choice = 0;
+		if (ndup) {
+			cout << "Not duplicate. The text is recorded into the database." << endl;
+			usrc.reg(1, code, "");
 		}
-	}
-
-	//customer account
-	else {
-		choice = 0;
-		while (true) {
-			choice = pnf(2);
-
-			if (choice == 0) break;
-
-			int c;
-			string sqlstr, qname;
-			string id, name, price, stock;
-
-
-			switch (choice) {
-			case 1:
-				// simple query
-
-				sqlstr = "SELECT * FROM `DB1`.`Items`;";
-				dbm.errSelect(sqlstr);
-				dbm.display();
-				dbm.clean();
-				break;
-
-			case 2:
-
-				//search
-				c = pnf(3);
-				switch (c) {
-				case 1:
-					//search by name
-					cout << "Enter the name of search: " << endl;
-					cin >> qname;
-					cout << endl;
-					sqlstr = "select * from Items where name like '%" + qname + "%'";
-					dbm.errSelect(sqlstr);
-					dbm.display();
-					dbm.clean();
-					break;
-				case 2: 
-					//search by category
-					cout << "Enter the name of the category: " << endl;
-					cin >> qname;
-					cout << endl;
-					sqlstr = "select * from Items inner join ( select iid from IsMemberOf inner join ( select cid from Categories where Categories.cname = '" + qname + "' ) as query_cid on IsMemberOf.cid = query_cid.cid) as query_table on Items.iid = query_table.iid";
-					dbm.errSelect(sqlstr);
-					dbm.display();
-					dbm.clean();
-					break;
-				default:
-					break;
-				}
-
-				break;
-
-			
-			default:
-				cout << "not supported" << endl;
-				break;
-			}
-
-			choice = 0;
+		else {
+			cout << "This is duplicated." << endl;
 		}
+		cout << "press 0 to quit, any other keys to continue." << endl;
+		cin >> nq;
+		cin.clear();
+		cin.ignore();
 	}
-
-
-	MySQLInterface.Close();
 	usrCtrl.Close();
 
 
